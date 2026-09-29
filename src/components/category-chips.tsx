@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { CategoryColors } from '@/constants/categories';
-import { Spacing } from '@/constants/theme';
+import { Brand, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { EXPENSE_CATEGORIES, type ExpenseCategory } from '@/types/expense';
 
@@ -15,7 +15,7 @@ type CategoryChipsProps = {
   showAll?: boolean;
 };
 
-const ALL_COLOR = '#208AEF';
+const ALL_COLOR = Brand.accent;
 
 function colorFor(option: CategoryFilter): string {
   return option === 'All' ? ALL_COLOR : CategoryColors[option];

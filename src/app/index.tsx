@@ -8,6 +8,7 @@ import { SummaryCard } from '@/components/summary-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { useExpenses } from '@/context/expense-context';
 import { formatCurrency, sortByDateDesc, sumAmounts, totalForDate, totalForMonth } from '@/utils/expense';
 
@@ -15,6 +16,7 @@ const RECENT_LIMIT = 5;
 
 export default function DashboardScreen() {
   const { expenses } = useExpenses();
+  const theme = useTheme();
   const now = new Date();
 
   const recent = sortByDateDesc(expenses).slice(0, RECENT_LIMIT);
@@ -52,7 +54,10 @@ export default function DashboardScreen() {
         <View style={styles.sectionHeader}>
           <ThemedText type="defaultBold">Recent</ThemedText>
           {hasExpenses && (
-            <ThemedText type="smallBold" style={styles.link} onPress={() => router.push('/expenses')}>
+            <ThemedText
+              type="smallBold"
+              style={{ color: theme.accent }}
+              onPress={() => router.push('/expenses')}>
               See all
             </ThemedText>
           )}
@@ -63,7 +68,7 @@ export default function DashboardScreen() {
             <EmptyState
               title="No expenses yet"
               message="Tap Add to record your first expense."
-              tone="#208AEF"
+              tone={theme.accent}
             />
           ) : (
             recent.map((expense, index) => (
@@ -114,8 +119,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: Spacing.two,
-  },
-  link: {
-    color: '#3c87f7',
   },
 });

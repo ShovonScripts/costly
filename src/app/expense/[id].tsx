@@ -7,6 +7,7 @@ import { ThemedView } from '@/components/themed-view';
 import { CategoryColors } from '@/constants/categories';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useExpenses } from '@/context/expense-context';
+import { useTheme } from '@/hooks/use-theme';
 import { formatCurrency, formatDate } from '@/utils/expense';
 
 type RowProps = {
@@ -32,6 +33,7 @@ function DetailRow({ label, value, wrap = false }: RowProps) {
 export default function ExpenseDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { getExpense, deleteExpense } = useExpenses();
+  const theme = useTheme();
 
   const expense = getExpense(id);
 
@@ -97,8 +99,14 @@ export default function ExpenseDetailsScreen() {
         <View style={styles.actions}>
           <Pressable
             onPress={() => router.push({ pathname: '/expense/[id]/edit', params: { id: expense.id } })}
-            style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}>
-            <ThemedText type="defaultBold">Edit</ThemedText>
+            style={({ pressed }) => [
+              styles.primaryButton,
+              { backgroundColor: theme.accent },
+              pressed && styles.pressed,
+            ]}>
+            <ThemedText type="defaultBold" style={styles.onAccent}>
+              Edit
+            </ThemedText>
           </Pressable>
           <Pressable
             onPress={handleDelete}
@@ -178,7 +186,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: Spacing.three,
     borderRadius: Radius.medium,
-    backgroundColor: '#208AEF',
+  },
+  onAccent: {
+    color: '#FFFFFF',
   },
   dangerButton: {
     flex: 1,

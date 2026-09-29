@@ -7,6 +7,28 @@ import '@/global.css';
 
 import { Platform } from 'react-native';
 
+/**
+ * Costly brand palette, sampled from the app icon.
+ *
+ * Every accent in the app resolves through here so screens never hardcode a
+ * brand colour and the identity stays consistent if the logo is ever revised.
+ */
+export const Brand = {
+  /** Dominant indigo-violet from the icon's top-left. */
+  primary: '#4A3CEE',
+  /** Bright violet from the icon's top-right, used for gradients. */
+  bright: '#B04CFC',
+  /** Deep navy base from the icon's bottom. */
+  deep: '#080564',
+  /** Mid violet, safe for large fills and splash backgrounds. */
+  accent: '#4A3CEE',
+  /** Lifted for dark mode, where the base accent lacks contrast on black. */
+  accentOnDark: '#8B7BFF',
+  /** 13% wash of the accent, for selected chips and tinted surfaces. */
+  accentMuted: 'rgba(74, 60, 238, 0.13)',
+  accentMutedDark: 'rgba(139, 123, 255, 0.18)',
+} as const;
+
 export const Colors = {
   light: {
     text: '#000000',
@@ -18,7 +40,8 @@ export const Colors = {
     cardMuted: '#F7F7F9',
     border: '#E6E6EA',
     danger: '#C8252C',
-    accent: '#208AEF',
+    accent: Brand.accent,
+    accentMuted: Brand.accentMuted,
   },
   dark: {
     text: '#ffffff',
@@ -30,7 +53,8 @@ export const Colors = {
     cardMuted: '#17181A',
     border: '#2A2C31',
     danger: '#FF6B6B',
-    accent: '#4DA3FF',
+    accent: Brand.accentOnDark,
+    accentMuted: Brand.accentMutedDark,
   },
 } as const;
 

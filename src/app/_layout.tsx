@@ -2,22 +2,19 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider, router } from 'expo-rout
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { Pressable } from 'react-native';
-
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { LoadingScreen } from '@/components/loading-screen';
 import { ThemedText } from '@/components/themed-text';
-import { Colors } from '@/constants/theme';
 import { ExpenseProvider, useExpenses } from '@/context/expense-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTheme } from '@/hooks/use-theme';
 import { runSqliteCrudTest } from '@/storage/sqlite-crud-test';
 
 SplashScreen.preventAutoHideAsync();
 
 /** Holds the navigator back until the saved expenses have been read. */
 function Navigation() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const colors = isDark ? Colors.dark : Colors.light;
+  const theme = useTheme();
   const { isLoading } = useExpenses();
 
   if (isLoading) {
@@ -26,7 +23,7 @@ function Navigation() {
 
   const renderAddButton = () => (
     <Pressable onPress={() => router.push('/add-expense')} hitSlop={8}>
-      <ThemedText type="defaultBold" style={{ color: '#208AEF' }}>
+      <ThemedText type="defaultBold" style={{ color: theme.accent }}>
         Add
       </ThemedText>
     </Pressable>
@@ -35,10 +32,10 @@ function Navigation() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: colors.background },
-        headerTintColor: colors.text,
+        headerStyle: { backgroundColor: theme.background },
+        headerTintColor: theme.text,
         headerShadowVisible: false,
-        contentStyle: { backgroundColor: colors.background },
+        contentStyle: { backgroundColor: theme.background },
       }}>
       <Stack.Screen name="index" options={{ title: 'Dashboard', headerRight: renderAddButton }} />
       <Stack.Screen name="expenses" options={{ title: 'Expenses', headerRight: renderAddButton }} />

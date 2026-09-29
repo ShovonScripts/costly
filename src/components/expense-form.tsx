@@ -114,6 +114,7 @@ export function ExpenseForm({
             disabled={!isValid}
             style={({ pressed }) => [
               styles.saveButton,
+              { backgroundColor: theme.accent },
               pressed && styles.pressed,
               !isValid && styles.saveButtonDisabled,
             ]}>
@@ -196,7 +197,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: Spacing.three,
     borderRadius: Radius.medium,
-    backgroundColor: '#208AEF',
   },
   saveButtonDisabled: {
     opacity: 0.4,
