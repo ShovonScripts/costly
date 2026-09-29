@@ -1,98 +1,121 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
+import { Card, CardDivider } from '@/components/card';
+import { EmptyState } from '@/components/empty-state';
+import { ExpenseListItem } from '@/components/expense-list-item';
+import { SummaryCard } from '@/components/summary-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { useExpenses } from '@/context/expense-context';
+import { formatCurrency, sortByDateDesc, sumAmounts, totalForDate, totalForMonth } from '@/utils/expense';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+const RECENT_LIMIT = 5;
 
-export default function HomeScreen() {
+export default function DashboardScreen() {
+  const { expenses } = useExpenses();
+  const now = new Date();
+
+  const recent = sortByDateDesc(expenses).slice(0, RECENT_LIMIT);
+  const hasExpenses = expenses.length > 0;
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
+    <ScrollView
+      style={styles.scrollView}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <ThemedText type="subtitle">Dashboard</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            {hasExpenses
+              ? `${expenses.length} ${expenses.length === 1 ? 'expense' : 'expenses'} tracked`
+              : 'Nothing tracked yet'}
+          </ThemedText>
+        </View>
+
+        <ThemedView type="card" style={styles.hero}>
+          <ThemedText type="caption" themeColor="textSecondary">
+            TOTAL SPENT
+          </ThemedText>
+          <ThemedText type="hero" style={styles.heroValue} numberOfLines={1} adjustsFontSizeToFit>
+            {formatCurrency(sumAmounts(expenses))}
           </ThemedText>
         </ThemedView>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+        <View style={styles.summaryRow}>
+          <SummaryCard label="Today" value={formatCurrency(totalForDate(expenses, now))} />
+          <SummaryCard label="This month" value={formatCurrency(totalForMonth(expenses, now))} />
+        </View>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+        <View style={styles.sectionHeader}>
+          <ThemedText type="defaultBold">Recent</ThemedText>
+          {hasExpenses && (
+            <ThemedText type="smallBold" style={styles.link} onPress={() => router.push('/expenses')}>
+              See all
+            </ThemedText>
+          )}
+        </View>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+        <Card padded={false}>
+          {recent.length === 0 ? (
+            <EmptyState
+              title="No expenses yet"
+              message="Tap Add to record your first expense."
+              tone="#208AEF"
+            />
+          ) : (
+            recent.map((expense, index) => (
+              <View key={expense.id}>
+                {index > 0 && <CardDivider />}
+                <ExpenseListItem expense={expense} />
+              </View>
+            ))
+          )}
+        </Card>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+  },
+  contentContainer: {
+    flexGrow: 1,
+  },
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
+    width: '100%',
     maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
+    alignSelf: 'center',
+    padding: Spacing.four,
     gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  },
+  header: {
+    gap: Spacing.half,
+  },
+  hero: {
+    borderRadius: Radius.xlarge,
+    padding: Spacing.four,
+    gap: Spacing.one,
+  },
+  heroValue: {
+    fontVariant: ['tabular-nums'],
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    gap: Spacing.three,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: Spacing.two,
+  },
+  link: {
+    color: '#3c87f7',
   },
 });
