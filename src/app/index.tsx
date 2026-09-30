@@ -41,11 +41,6 @@ function getGreeting(hour: number): string {
   return 'Good evening';
 }
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  return parts.length ? parts.slice(0, 2).map((part) => part[0].toUpperCase()).join('') : 'C';
-}
-
 function WeeklySpending({ expenses, today, formatAmount }: { expenses: Expense[]; today: Date; formatAmount: (amount: number) => string }) {
   const theme = useTheme();
   const days = getWeekSpending(expenses, today);
@@ -284,13 +279,6 @@ export default function DashboardScreen() {
               {new Intl.DateTimeFormat('en', { weekday: 'long', day: 'numeric', month: 'long' }).format(now)}
             </ThemedText>
           </View>
-          <Pressable
-            onPress={() => router.push('/profile')}
-            accessibilityRole="button"
-            accessibilityLabel="Open your profile and settings"
-            style={({ pressed }) => [styles.brandMark, { backgroundColor: theme.accentMuted }, pressed && styles.pressed]}>
-            <ThemedText type="defaultBold" style={{ color: theme.accent }}>{getInitials(profile.name)}</ThemedText>
-          </Pressable>
         </View>
 
         <ThemedView type="card" style={styles.hero}>
@@ -400,7 +388,6 @@ const styles = StyleSheet.create({
   greeting: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   greetingCopy: { gap: Spacing.one },
   greetingTitle: { fontSize: 28, lineHeight: 34 },
-  brandMark: { width: 44, height: 44, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
   hero: {
     backgroundColor: Brand.deep,
     borderRadius: Radius.xlarge,

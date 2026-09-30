@@ -5,6 +5,12 @@ import type { Expense } from '@/types/expense';
 /** Default currency used for fresh installs; user settings can select another. */
 export const CURRENCY_SYMBOL = DEFAULT_COUNTRY.symbol;
 
+/** Up to two letters from a profile name, used by the header avatar. */
+export function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return parts.length ? parts.slice(0, 2).map((part) => part[0].toUpperCase()).join('') : 'C';
+}
+
 const groupingFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 2,

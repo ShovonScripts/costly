@@ -10,13 +10,14 @@ import { ExpenseProvider, useExpenses } from '@/context/expense-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import { runSqliteCrudTest } from '@/storage/sqlite-crud-test';
+import { getInitials } from '@/utils/expense';
 
 SplashScreen.preventAutoHideAsync();
 
 /** Holds the navigator back until the saved expenses have been read. */
 function Navigation() {
   const theme = useTheme();
-  const { isLoading } = useExpenses();
+  const { isLoading, profile } = useExpenses();
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -40,6 +41,23 @@ function Navigation() {
     </Pressable>
   );
 
+  const renderProfileButton = () => (
+    <Pressable
+      onPress={() => router.push('/profile')}
+      accessibilityRole="button"
+      accessibilityLabel="Open your profile and settings"
+      hitSlop={8}
+      style={({ pressed }) => [
+        styles.profileButton,
+        { backgroundColor: theme.accentMuted },
+        pressed && styles.profileButtonPressed,
+      ]}>
+      <ThemedText type="smallBold" style={{ color: theme.accent }}>
+        {getInitials(profile.name)}
+      </ThemedText>
+    </Pressable>
+  );
+
   return (
     <Stack
       screenOptions={{
@@ -49,7 +67,7 @@ function Navigation() {
         headerShadowVisible: false,
         contentStyle: { backgroundColor: theme.background },
       }}>
-      <Stack.Screen name="index" options={{ headerTitle: () => <CostlyLogo />, headerRight: renderAddButton }} />
+      <Stack.Screen name="index" options={{ headerTitle: () => <CostlyLogo />, headerRight: renderProfileButton }} />
       <Stack.Screen name="expenses" options={{ title: 'Expenses', headerRight: renderAddButton }} />
       <Stack.Screen name="profile" options={{ title: 'Profile & settings' }} />
       <Stack.Screen name="country" options={{ title: 'Country & currency' }} />
@@ -95,6 +113,16 @@ const styles = StyleSheet.create({
   addButtonPressed: {
     opacity: 0.78,
     transform: [{ scale: 0.97 }],
+  },
+  profileButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileButtonPressed: {
+    opacity: 0.72,
   },
 });
 

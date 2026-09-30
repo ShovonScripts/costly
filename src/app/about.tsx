@@ -38,8 +38,8 @@ export default function AboutScreen() {
         </Card>
 
         <Card style={styles.supportCard}>
-          <View style={[styles.coffeeMark, { backgroundColor: theme.accentMuted }]}>
-            <ThemedText type="title" style={{ color: theme.accent, fontSize: 25, lineHeight: 30 }}>♥</ThemedText>
+          <View style={[styles.coffeeMark, { backgroundColor: theme.backgroundElement }]}>
+            <ThemedText type="title" themeColor="textSecondary" style={styles.coffeeMarkText}>♥</ThemedText>
           </View>
           <ThemedText type="subtitle" style={styles.supportTitle}>Support independent development</ThemedText>
           <ThemedText type="small" themeColor="textSecondary" style={styles.supportCopy}>
@@ -49,8 +49,8 @@ export default function AboutScreen() {
             <Pressable
               accessibilityRole="link"
               accessibilityLabel="Support Costly on Buy Me a Coffee"
-              style={({ pressed }) => [styles.donateButton, { backgroundColor: theme.accent }, pressed && styles.pressed]}>
-              <ThemedText type="defaultBold" style={styles.donateText}>Buy me a coffee  ↗</ThemedText>
+              style={({ pressed }) => [styles.donateButton, { borderColor: theme.accent }, pressed && styles.pressed]}>
+              <ThemedText type="defaultBold" style={{ color: theme.accent }}>Buy me a coffee  ↗</ThemedText>
             </Pressable>
           </ExternalLink>
           <ThemedText type="caption" themeColor="textSecondary" style={styles.donationNote}>
@@ -92,10 +92,18 @@ const styles = StyleSheet.create({
   localOnlyNote: { borderRadius: Radius.medium, padding: Spacing.three },
   supportCard: { alignItems: 'center', gap: Spacing.two, padding: Spacing.four },
   coffeeMark: { width: 46, height: 46, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
+  coffeeMarkText: { fontSize: 25, lineHeight: 30 },
   supportTitle: { fontSize: 22, lineHeight: 28, textAlign: 'center' },
   supportCopy: { textAlign: 'center', maxWidth: 500 },
-  donateButton: { minHeight: 48, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.four, marginTop: Spacing.one },
-  donateText: { color: '#FFFFFF' },
+  donateButton: {
+    minHeight: 48,
+    borderRadius: Radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.four,
+    marginTop: Spacing.one,
+    borderWidth: 1.5,
+  },
   donationNote: { textAlign: 'center', maxWidth: 430 },
   version: { textAlign: 'center', marginTop: Spacing.one },
   pressed: { opacity: 0.74 },

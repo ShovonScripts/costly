@@ -16,6 +16,7 @@ import { formatCurrency } from '@/utils/expense';
 import { DEFAULT_PREFERENCES, type UserPreferences, type UserProfile } from '@/types/preferences';
 import { loadExpenses, saveExpenses } from '@/storage/expense-storage';
 import { loadPreferences, savePreferences } from '@/storage/preferences-storage';
+import { createSeedExpenses } from '@/data/seed-expenses';
 
 type ExpenseAction =
   | { type: 'HYDRATE'; expenses: Expense[] }
@@ -94,7 +95,14 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
 
       if (cancelled) return;
 
-      dispatch({ type: 'HYDRATE', expenses: savedExpenses ?? [] });
+      // Development only: a first launch with no stored expenses gets sample rows
+      // so the dashboard, advisor and reports have something to render. Release
+      // builds always start empty, and deleting every expense in dev does not
+      // resurrect the seed rows, because `loadExpenses` returns an empty array
+      // (not null) once the storage key exists.
+      const initialExpenses = savedExpenses ?? (__DEV__ ? createSeedExpenses() : []);
+
+      dispatch({ type: 'HYDRATE', expenses: initialExpenses });
       setPreferences(savedPreferences);
       hasLoadedRef.current = true;
       setIsLoading(false);
