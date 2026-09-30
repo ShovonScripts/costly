@@ -4,11 +4,11 @@ import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Card, CardDivider } from '@/components/card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { CategoryColors } from '@/constants/categories';
+import { getCategoryColor } from '@/constants/categories';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useExpenses } from '@/context/expense-context';
 import { useTheme } from '@/hooks/use-theme';
-import { formatCurrency, formatDate } from '@/utils/expense';
+import { formatDate } from '@/utils/expense';
 
 type RowProps = {
   label: string;
@@ -32,7 +32,7 @@ function DetailRow({ label, value, wrap = false }: RowProps) {
 
 export default function ExpenseDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { getExpense, deleteExpense } = useExpenses();
+  const { getExpense, deleteExpense, formatAmount } = useExpenses();
   const theme = useTheme();
 
   const expense = getExpense(id);
@@ -51,7 +51,7 @@ export default function ExpenseDetailsScreen() {
     );
   }
 
-  const accent = CategoryColors[expense.category];
+  const accent = getCategoryColor(expense.category);
 
   const handleDelete = () => {
     Alert.alert('Delete expense?', 'This cannot be undone.', [
@@ -75,7 +75,7 @@ export default function ExpenseDetailsScreen() {
             AMOUNT
           </ThemedText>
           <ThemedText type="hero" style={styles.heroValue} numberOfLines={1} adjustsFontSizeToFit>
-            {formatCurrency(expense.amount)}
+            {formatAmount(expense.amount)}
           </ThemedText>
 
           <View style={styles.badgeRow}>

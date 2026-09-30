@@ -2,14 +2,17 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { CategoryChips } from '@/components/category-chips';
+import { DatePicker } from '@/components/date-picker';
 import { ThemedText } from '@/components/themed-text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useExpenses } from '@/context/expense-context';
 import { EXPENSE_CATEGORIES, type ExpenseCategory, type ExpenseDraft } from '@/types/expense';
-import { CURRENCY_SYMBOL } from '@/utils/expense';
+import { sumAmounts } from '@/utils/expense';
 
 type ExpenseFormProps = {
   initialValues?: Partial<ExpenseDraft>;
+  excludeExpenseId?: string;
   submitLabel: string;
   onSubmit: (draft: ExpenseDraft) => void;
   onCancel?: () => void;
@@ -25,24 +28,47 @@ const EMPTY_VALUES: ExpenseDraft = {
 
 export function ExpenseForm({
   initialValues,
+  excludeExpenseId,
   submitLabel,
   onSubmit,
   onCancel,
   footerNote,
 }: ExpenseFormProps) {
   const theme = useTheme();
+  const { expenses, categories, categoryLimits, country, formatAmount } = useExpenses();
 
-  const [amount, setAmount] = useState<number | null>(initialValues?.amount ?? null);
+  const [amountText, setAmountText] = useState(initialValues?.amount === undefined ? '' : String(initialValues.amount));
+  const [date, setDate] = useState(() => initialValues?.date ? new Date(initialValues.date) : new Date());
   const [category, setCategory] = useState<ExpenseCategory>(initialValues?.category ?? EMPTY_VALUES.category);
   const [note, setNote] = useState<string>(initialValues?.note ?? EMPTY_VALUES.note);
 
-  const isValid = amount !== null && Number.isFinite(amount) && amount > 0;
+  const parsedAmount = amountText.trim() === '' ? null : Number(amountText);
+  const isValid = parsedAmount !== null && Number.isFinite(parsedAmount) && parsedAmount > 0;
+  const showAmountError = amountText.length > 0 && !isValid;
+  const now = new Date();
+  const isThisMonth = date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+  const existingCategorySpend = sumAmounts(expenses.filter((expense) => {
+    if (expense.id === excludeExpenseId || expense.category !== category) return false;
+    const expenseDate = new Date(expense.date);
+    return expenseDate.getFullYear() === now.getFullYear() && expenseDate.getMonth() === now.getMonth();
+  }));
+  const projectedCategorySpend = existingCategorySpend + (parsedAmount ?? 0);
+  const categoryLimit = categoryLimits[category];
+  const budgetNotice = isThisMonth && isValid && categoryLimit !== undefined
+    ? projectedCategorySpend > categoryLimit
+      ? `Heads up: this would put ${formatAmount(projectedCategorySpend - categoryLimit)} over your ${category} limit.`
+      : projectedCategorySpend / categoryLimit >= 0.8
+        ? projectedCategorySpend === categoryLimit
+          ? `Heads up: this will use your full ${category} limit.`
+          : `Heads up: this would use ${Math.round((projectedCategorySpend / categoryLimit) * 100)}% of your ${category} limit, with ${formatAmount(categoryLimit - projectedCategorySpend)} left.`
+        : null
+    : null;
 
   const handleSubmit = () => {
-    if (!isValid) {
+    if (!isValid || parsedAmount === null) {
       return;
     }
-    onSubmit({ amount, category, note: note.trim() });
+    onSubmit({ amount: parsedAmount, category, note: note.trim(), date: date.toISOString() });
   };
 
   return (
@@ -62,23 +88,28 @@ export function ExpenseForm({
                 { borderColor: theme.border, backgroundColor: theme.cardMuted },
               ]}>
               <ThemedText type="hero" style={styles.currency}>
-                {CURRENCY_SYMBOL}
+                {country.symbol.trim()}
               </ThemedText>
               <TextInput
-                value={amount === null ? '' : String(amount)}
-                onChangeText={(text) => setAmount(text === '' ? null : Number.parseFloat(text))}
-                placeholder="0"
+                value={amountText}
+                onChangeText={setAmountText}
+                placeholder="0.00"
                 placeholderTextColor={theme.textSecondary}
                 keyboardType="decimal-pad"
+                accessibilityLabel={`Expense amount in ${country.currencyCode}`}
+                accessibilityHint="Enter an amount greater than zero"
+                returnKeyType="done"
                 style={[styles.amountInput, { color: theme.text }]}
               />
             </View>
-            {amount !== null && amount <= 0 && (
-              <ThemedText type="caption" themeColor="danger">
-                Amount must be greater than zero.
+            {showAmountError && (
+              <ThemedText type="caption" themeColor="danger" accessibilityLiveRegion="polite">
+                Enter a valid amount greater than zero.
               </ThemedText>
             )}
           </View>
+
+          <DatePicker value={date} onChange={setDate} />
 
           <View style={styles.field}>
             <ThemedText type="caption" themeColor="textSecondary">
@@ -86,6 +117,7 @@ export function ExpenseForm({
             </ThemedText>
             {/* `showAll` is off here, so the callback only ever gets real categories. */}
             <CategoryChips
+              categories={categories}
               value={category}
               onChange={(next) => {
                 if (next !== 'All') {
@@ -93,6 +125,14 @@ export function ExpenseForm({
                 }
               }}
             />
+            {budgetNotice && (
+              <ThemedText
+                type="caption"
+                accessibilityLiveRegion="polite"
+                style={{ color: categoryLimit !== undefined && projectedCategorySpend > categoryLimit ? theme.danger : '#BD7119' }}>
+                {budgetNotice}
+              </ThemedText>
+            )}
           </View>
 
           <View style={styles.field}>
@@ -112,6 +152,8 @@ export function ExpenseForm({
           <Pressable
             onPress={handleSubmit}
             disabled={!isValid}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !isValid }}
             style={({ pressed }) => [
               styles.saveButton,
               { backgroundColor: theme.accent },

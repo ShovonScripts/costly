@@ -6,7 +6,6 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useExpenses } from '@/context/expense-context';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
-import { formatDate } from '@/utils/expense';
 
 export default function EditExpenseScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -27,9 +26,9 @@ export default function EditExpenseScreen() {
 
   return (
     <ExpenseForm
-      initialValues={{ amount: expense.amount, category: expense.category, note: expense.note }}
+      excludeExpenseId={expense.id}
+      initialValues={{ amount: expense.amount, category: expense.category, note: expense.note, date: expense.date }}
       submitLabel="Save changes"
-      footerNote={`Date is fixed at ${formatDate(expense.date)} for now.`}
       onCancel={() => router.back()}
       onSubmit={(draft) => {
         updateExpense(expense.id, draft);

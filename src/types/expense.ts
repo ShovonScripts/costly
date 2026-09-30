@@ -8,7 +8,8 @@ export const EXPENSE_CATEGORIES = [
   'Other',
 ] as const;
 
-export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
+/** Built-in names stay suggested in editors while custom category names are also valid. */
+export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number] | (string & {});
 
 export interface Expense {
   id: string;
@@ -19,5 +20,5 @@ export interface Expense {
   note: string;
 }
 
-/** What the Add / Edit Expense forms produce. The provider fills in `id` and `date`. */
-export type ExpenseDraft = Omit<Expense, 'id' | 'date'>;
+/** What the Add / Edit forms produce. The provider fills in `id` and defaults `date`. */
+export type ExpenseDraft = Pick<Expense, 'amount' | 'category' | 'note'> & { date?: string };

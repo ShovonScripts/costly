@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { EXPENSE_CATEGORIES, type Expense } from '@/types/expense';
+import type { Expense } from '@/types/expense';
 
 export const STORAGE_KEY = '@costly/expenses';
 
@@ -16,7 +16,8 @@ function isExpense(value: unknown): value is Expense {
     typeof candidate.date === 'string' &&
     !Number.isNaN(new Date(candidate.date).getTime()) &&
     typeof candidate.note === 'string' &&
-    EXPENSE_CATEGORIES.includes(candidate.category as never)
+    typeof candidate.category === 'string' &&
+    candidate.category.trim().length > 0
   );
 }
 
@@ -36,7 +37,8 @@ export async function loadExpenses(): Promise<Expense[] | null> {
     if (!Array.isArray(parsed) || !parsed.every(isExpense)) {
       return null;
     }
-    return parsed;
+    // Remove the old first-launch demo rows from existing installs as well.
+    return parsed.filter((expense) => !expense.id.startsWith('seed-'));
   } catch {
     return null;
   }

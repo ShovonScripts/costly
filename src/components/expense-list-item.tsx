@@ -2,10 +2,11 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { CategoryColors } from '@/constants/categories';
+import { getCategoryColor } from '@/constants/categories';
+import { useExpenses } from '@/context/expense-context';
 import { Radius, Spacing } from '@/constants/theme';
 import type { Expense } from '@/types/expense';
-import { formatCurrency, formatDate } from '@/utils/expense';
+import { formatDate } from '@/utils/expense';
 import { router } from 'expo-router';
 
 type ExpenseListItemProps = {
@@ -14,6 +15,7 @@ type ExpenseListItemProps = {
 };
 
 export function ExpenseListItem({ expense, onPress }: ExpenseListItemProps) {
+  const { formatAmount } = useExpenses();
   const handlePress = () => {
     if (onPress) {
       onPress();
@@ -22,12 +24,14 @@ export function ExpenseListItem({ expense, onPress }: ExpenseListItemProps) {
     router.push({ pathname: '/expense/[id]', params: { id: expense.id } });
   };
 
-  const accent = CategoryColors[expense.category];
+  const accent = getCategoryColor(expense.category);
   const title = expense.note || expense.category;
 
   return (
     <Pressable
       onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={`${title}, ${expense.category}, ${formatAmount(expense.amount)}, ${formatDate(expense.date)}`}
       style={({ pressed }) => [styles.container, pressed && styles.pressed]}>
       <View style={[styles.rail, { backgroundColor: accent }]} />
 
@@ -47,7 +51,7 @@ export function ExpenseListItem({ expense, onPress }: ExpenseListItemProps) {
       </View>
 
       <ThemedText type="defaultBold" style={styles.amount} numberOfLines={1}>
-        {formatCurrency(expense.amount)}
+        {formatAmount(expense.amount)}
       </ThemedText>
     </Pressable>
   );
@@ -58,6 +62,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
+    minHeight: 76,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.three,
   },

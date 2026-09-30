@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { CategoryColors } from '@/constants/categories';
+import { getCategoryColor } from '@/constants/categories';
 import { Brand, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { EXPENSE_CATEGORIES, type ExpenseCategory } from '@/types/expense';
@@ -13,17 +13,18 @@ type CategoryChipsProps = {
   onChange: (value: CategoryFilter) => void;
   /** Adds an "All" chip at the front. Used by the filter, not the form. */
   showAll?: boolean;
+  categories?: ExpenseCategory[];
 };
 
 const ALL_COLOR = Brand.accent;
 
 function colorFor(option: CategoryFilter): string {
-  return option === 'All' ? ALL_COLOR : CategoryColors[option];
+  return option === 'All' ? ALL_COLOR : getCategoryColor(option);
 }
 
-export function CategoryChips({ value, onChange, showAll = false }: CategoryChipsProps) {
+export function CategoryChips({ value, onChange, showAll = false, categories = [...EXPENSE_CATEGORIES] }: CategoryChipsProps) {
   const theme = useTheme();
-  const options: CategoryFilter[] = showAll ? ['All', ...EXPENSE_CATEGORIES] : [...EXPENSE_CATEGORIES];
+  const options: CategoryFilter[] = showAll ? ['All', ...categories] : categories;
 
   return (
     <View style={styles.container}>
@@ -35,6 +36,8 @@ export function CategoryChips({ value, onChange, showAll = false }: CategoryChip
           <Pressable
             key={option}
             onPress={() => onChange(option)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isSelected }}
             style={[
               styles.chip,
               {
@@ -65,6 +68,7 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: Spacing.five,
+    minHeight: 44,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
   },

@@ -1,27 +1,17 @@
 import type { CategoryFilter } from '@/components/category-chips';
+import { COUNTRIES, DEFAULT_COUNTRY, type CurrencyCode } from '@/constants/countries';
 import type { Expense } from '@/types/expense';
 
-/**
- * Bangladeshi Taka. Amounts are stored as plain numbers — this symbol is only
- * ever added at format time, never persisted.
- */
-export const CURRENCY_SYMBOL = '৳';
+/** Default currency used for fresh installs; user settings can select another. */
+export const CURRENCY_SYMBOL = DEFAULT_COUNTRY.symbol;
 
-// `en-US` grouping on purpose: `en-BD` would switch to lakh/crore grouping
-// (12,450 -> 12,450 is fine, but 125,000 -> 1,25,000) and `bn-BD` would switch
-// to Bengali numerals. Costly uses Latin digits with Western grouping.
 const groupingFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 2,
 });
 
-/**
- * The single place money is turned into text.
- *
- * Whole amounts print without decimals (৳250, ৳12,450); amounts with a fractional
- * part keep two places (৳12.50) so small charges are never misrepresented.
- */
-export function formatCurrency(amount: number): string {
+/** Format amounts using the currency selected by the user. */
+export function formatCurrency(amount: number, currencyCode: CurrencyCode = DEFAULT_COUNTRY.currencyCode): string {
   const rounded = Math.round(amount * 100) / 100;
   const hasFraction = rounded % 1 !== 0;
   const body = hasFraction
@@ -30,8 +20,9 @@ export function formatCurrency(amount: number): string {
         maximumFractionDigits: 2,
       }).format(rounded)
     : groupingFormatter.format(rounded);
+  const symbol = COUNTRIES.find((country) => country.currencyCode === currencyCode)?.symbol ?? CURRENCY_SYMBOL;
 
-  return `${CURRENCY_SYMBOL}${body}`;
+  return `${symbol}${body}`;
 }
 
 const MONTHS = [
@@ -76,9 +67,7 @@ export function sortByDateDesc(expenses: Expense[]): Expense[] {
  */
 export function matchesSearch(expense: Expense, query: string): boolean {
   const needle = query.trim().toLowerCase();
-  if (!needle) {
-    return true;
-  }
+  if (!needle) return true;
   return (
     expense.note.toLowerCase().includes(needle) ||
     expense.category.toLowerCase().includes(needle) ||
@@ -92,8 +81,7 @@ export function filterExpenses(
   category: CategoryFilter
 ): Expense[] {
   return expenses.filter(
-    (expense) =>
-      (category === 'All' || expense.category === category) && matchesSearch(expense, query)
+    (expense) => (category === 'All' || expense.category === category) && matchesSearch(expense, query)
   );
 }
 
