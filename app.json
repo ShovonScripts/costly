@@ -11,6 +11,7 @@
       "icon": "./assets/images/ios-icon.png"
     },
     "android": {
+      "package": "com.shovon.costly",
       "adaptiveIcon": {
         "backgroundColor": "#4A3CEE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
