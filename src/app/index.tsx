@@ -10,6 +10,7 @@ import { ThemedView } from '@/components/themed-view';
 import { getCategoryColor } from '@/constants/categories';
 import { Brand, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useExpenses } from '@/context/expense-context';
+import { useDebts } from '@/context/debt-context';
 import { useTheme } from '@/hooks/use-theme';
 import { sortByDateDesc, sumAmounts, totalForDate, totalForMonth } from '@/utils/expense';
 import type { Expense } from '@/types/expense';
@@ -160,6 +161,45 @@ function BudgetOverview({
           );
         })
       )}
+    </Card>
+  );
+}
+
+function MoneyOverview({ formatAmount }: { formatAmount: (amount: number) => string }) {
+  const theme = useTheme();
+  const { debts } = useDebts();
+  const activeDebts = debts.filter((d) => d.status === 'active');
+  const youAreOwed = activeDebts.filter((d) => d.type === 'lent').reduce((sum, d) => sum + d.amount, 0);
+  const youOwe = activeDebts.filter((d) => d.type === 'borrowed').reduce((sum, d) => sum + d.amount, 0);
+  const net = youAreOwed - youOwe;
+
+  return (
+    <Card style={styles.budgetCard}>
+      <View style={styles.sectionTitleRow}>
+        <View style={styles.sectionTitleCopy}>
+          <ThemedText type="defaultBold">Money Overview</ThemedText>
+          <ThemedText type="caption" themeColor="textSecondary">Active debts balance</ThemedText>
+        </View>
+        <Pressable onPress={() => router.push('/debts')} accessibilityRole="button" hitSlop={8}>
+          <ThemedText type="smallBold" style={{ color: theme.accent }}>View debts  →</ThemedText>
+        </Pressable>
+      </View>
+      <View style={styles.summaryGrid}>
+        <View style={styles.summaryCol}>
+          <ThemedText type="caption" themeColor="textSecondary">YOU ARE OWED</ThemedText>
+          <ThemedText type="smallBold" style={{ color: '#27AE60' }}>{formatAmount(youAreOwed)}</ThemedText>
+        </View>
+        <View style={styles.summaryCol}>
+          <ThemedText type="caption" themeColor="textSecondary">YOU OWE</ThemedText>
+          <ThemedText type="smallBold" style={{ color: theme.danger }}>{formatAmount(youOwe)}</ThemedText>
+        </View>
+        <View style={styles.summaryCol}>
+          <ThemedText type="caption" themeColor="textSecondary">NET</ThemedText>
+          <ThemedText type="smallBold" style={{ color: net >= 0 ? '#27AE60' : theme.danger }}>
+            {net >= 0 ? `+${formatAmount(net)}` : formatAmount(net)}
+          </ThemedText>
+        </View>
+      </View>
     </Card>
   );
 }
@@ -331,6 +371,7 @@ export default function DashboardScreen() {
           </Card>
         </View>
 
+        <MoneyOverview formatAmount={formatAmount} />
         <SpendingAdvisor expenses={expenses} limits={categoryLimits} formatAmount={formatAmount} />
         <WeeklySpending expenses={expenses} today={now} formatAmount={formatAmount} />
         <CategoryBreakdown expenses={expenses} formatAmount={formatAmount} />
@@ -434,6 +475,8 @@ const styles = StyleSheet.create({
   budgetCategory: { flex: 1 },
   budgetTrack: { height: 8, borderRadius: Radius.pill, overflow: 'hidden' },
   budgetFill: { height: '100%', borderRadius: Radius.pill },
+  summaryGrid: { flexDirection: 'row', justifyContent: 'space-between', marginTop: Spacing.one },
+  summaryCol: { flex: 1, gap: Spacing.half },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two },
   sectionTitleCopy: { gap: Spacing.one },
   chart: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: Spacing.two, minHeight: 112 },

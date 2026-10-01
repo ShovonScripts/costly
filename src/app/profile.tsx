@@ -121,6 +121,8 @@ export default function ProfileScreen() {
             onPress={() => router.push('/country')}
           />
           <View style={[styles.divider, { backgroundColor: theme.border }]} />
+          <SettingsLink title="Lend & borrow" detail="Track money lent and borrowed (IOUs)" onPress={() => router.push('/debts')} />
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
           <SettingsLink title="Manage categories" detail="Create, rename, or remove categories" onPress={() => router.push('/categories')} />
           <View style={[styles.divider, { backgroundColor: theme.border }]} />
           <SettingsLink title="Category limits" detail="Set monthly spending limits" onPress={() => router.push('/budgets')} />
