@@ -17,6 +17,8 @@ import { DEFAULT_PREFERENCES, type UserPreferences, type UserProfile } from '@/t
 import { loadExpenses, saveExpenses } from '@/storage/expense-storage';
 import { loadPreferences, savePreferences } from '@/storage/preferences-storage';
 import { createSeedExpenses } from '@/data/seed-expenses';
+import { processRecurringExpenses } from '@/utils/recurring';
+import { checkAndTriggerBudgetNotifications } from '@/utils/notifications';
 
 type ExpenseAction =
   | { type: 'HYDRATE'; expenses: Expense[] }
@@ -64,16 +66,18 @@ type ExpenseContextValue = {
   categories: ExpenseCategory[];
   customCategories: string[];
   categoryLimits: Record<string, number>;
+  categoryIcons: Record<string, string>;
   addExpense: (draft: ExpenseDraft) => Expense;
   updateExpense: (id: string, changes: ExpenseDraft) => void;
   deleteExpense: (id: string) => void;
   getExpense: (id: string) => Expense | undefined;
   updateProfile: (profile: UserProfile) => void;
   setCountryCode: (countryCode: CountryCode) => void;
-  addCategory: (name: string) => boolean;
+  addCategory: (name: string, icon?: string) => boolean;
   renameCategory: (from: string, to: string) => boolean;
   deleteCategory: (name: string) => DeleteCategoryResult;
   setCategoryLimit: (category: string, limit: number | null) => void;
+  setCategoryIcon: (category: string, icon: string) => void;
 };
 
 const ExpenseContext = createContext<ExpenseContextValue | undefined>(undefined);
@@ -95,12 +99,8 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
 
       if (cancelled) return;
 
-      // Development only: a first launch with no stored expenses gets sample rows
-      // so the dashboard, advisor and reports have something to render. Release
-      // builds always start empty, and deleting every expense in dev does not
-      // resurrect the seed rows, because `loadExpenses` returns an empty array
-      // (not null) once the storage key exists.
-      const initialExpenses = savedExpenses ?? (__DEV__ ? createSeedExpenses() : []);
+      const rawInitial = savedExpenses ?? (__DEV__ ? createSeedExpenses() : []);
+      const initialExpenses = processRecurringExpenses(rawInitial);
 
       dispatch({ type: 'HYDRATE', expenses: initialExpenses });
       setPreferences(savedPreferences);
@@ -120,8 +120,31 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     if (hasLoadedRef.current) void savePreferences(preferences);
   }, [preferences]);
 
+  useEffect(() => {
+    if (hasLoadedRef.current) {
+      void checkAndTriggerBudgetNotifications({
+        expenses,
+        limits: preferences.categoryLimits,
+        notifiedThresholds: preferences.notifiedThresholds,
+        onThresholdNotified: (key, level) => {
+          setPreferences((current) => ({
+            ...current,
+            notifiedThresholds: { ...current.notifiedThresholds, [key]: level },
+          }));
+        },
+      });
+    }
+  }, [expenses, preferences.categoryLimits, preferences.notifiedThresholds]);
+
   const addExpense = useCallback((draft: ExpenseDraft): Expense => {
-    const expense: Expense = { ...draft, id: createId(), date: draft.date ?? new Date().toISOString() };
+    const expense: Expense = {
+      ...draft,
+      id: createId(),
+      date: draft.date ?? new Date().toISOString(),
+      isRecurring: draft.isRecurring ?? false,
+      recurringFrequency: draft.recurringFrequency,
+      recurringEndDate: draft.recurringEndDate,
+    };
     dispatch({ type: 'ADD_EXPENSE', expense });
     return expense;
   }, []);
@@ -161,12 +184,13 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     ]),
   ], [expenses, preferences.customCategories]);
 
-  const addCategory = useCallback((rawName: string): boolean => {
+  const addCategory = useCallback((rawName: string, icon?: string): boolean => {
     const name = rawName.trim().slice(0, 28);
     if (!name || categories.some((category) => category.toLowerCase() === name.toLowerCase())) return false;
     setPreferences((current) => ({
       ...current,
       customCategories: [...current.customCategories, name],
+      categoryIcons: icon ? { ...current.categoryIcons, [name]: icon } : current.categoryIcons,
     }));
     return true;
   }, [categories]);
@@ -183,10 +207,16 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
         nextLimits[to] = nextLimits[from];
         delete nextLimits[from];
       }
+      const nextIcons = { ...current.categoryIcons };
+      if (nextIcons[from] !== undefined) {
+        nextIcons[to] = nextIcons[from];
+        delete nextIcons[from];
+      }
       return {
         ...current,
         customCategories: current.customCategories.map((category) => category === from ? to : category),
         categoryLimits: nextLimits,
+        categoryIcons: nextIcons,
       };
     });
     return true;
@@ -198,10 +228,13 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     setPreferences((current) => {
       const categoryLimits = { ...current.categoryLimits };
       delete categoryLimits[name];
+      const categoryIcons = { ...current.categoryIcons };
+      delete categoryIcons[name];
       return {
         ...current,
         customCategories: current.customCategories.filter((category) => category !== name),
         categoryLimits,
+        categoryIcons,
       };
     });
     return 'deleted';
@@ -219,6 +252,13 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const setCategoryIcon = useCallback((category: string, icon: string) => {
+    setPreferences((current) => ({
+      ...current,
+      categoryIcons: { ...current.categoryIcons, [category]: icon },
+    }));
+  }, []);
+
   const value = useMemo(() => ({
     expenses,
     isLoading,
@@ -228,6 +268,7 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     categories,
     customCategories: preferences.customCategories,
     categoryLimits: preferences.categoryLimits,
+    categoryIcons: preferences.categoryIcons,
     addExpense,
     updateExpense,
     deleteExpense,
@@ -238,6 +279,7 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     renameCategory,
     deleteCategory,
     setCategoryLimit,
+    setCategoryIcon,
   }), [
     expenses,
     isLoading,
@@ -255,6 +297,7 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     renameCategory,
     deleteCategory,
     setCategoryLimit,
+    setCategoryIcon,
   ]);
 
   return <ExpenseContext.Provider value={value}>{children}</ExpenseContext.Provider>;

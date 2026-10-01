@@ -14,6 +14,9 @@ export type UserPreferences = {
   customCategories: string[];
   /** Monthly spending caps, keyed by category name. */
   categoryLimits: Record<string, number>;
+  /** Custom icons for categories, keyed by category name. */
+  categoryIcons: Record<string, string>;
+  notifiedThresholds: Record<string, string>;
 };
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
@@ -21,4 +24,6 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   countryCode: 'BD',
   customCategories: [],
   categoryLimits: {},
+  categoryIcons: {},
+  notifiedThresholds: {},
 };

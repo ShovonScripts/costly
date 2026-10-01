@@ -24,3 +24,35 @@ export function getCategoryColor(category: ExpenseCategory): string {
   }
   return CUSTOM_PALETTE[Math.abs(hash) % CUSTOM_PALETTE.length];
 }
+
+export const ICON_PACK = [
+  { name: 'silverware-fork-knife', label: 'Food & Dining' },
+  { name: 'car', label: 'Transport' },
+  { name: 'shopping', label: 'Shopping' },
+  { name: 'flash', label: 'Bills & Utilities' },
+  { name: 'heart', label: 'Health' },
+  { name: 'ticket', label: 'Entertainment' },
+  { name: 'home', label: 'Housing' },
+  { name: 'briefcase', label: 'Work' },
+  { name: 'gift', label: 'Gifts' },
+  { name: 'credit-card', label: 'Finance' },
+  { name: 'book', label: 'Education' },
+  { name: 'tag', label: 'General Tag' },
+];
+
+const DEFAULT_ICONS: Record<string, string> = {
+  Food: 'silverware-fork-knife',
+  Transport: 'car',
+  Shopping: 'shopping',
+  Bills: 'flash',
+  Health: 'heart',
+  Entertainment: 'ticket',
+  Other: 'tag',
+};
+
+export function getCategorySymbolName(category: ExpenseCategory, customIcons?: Record<string, string>): string {
+  if (customIcons && customIcons[category]) {
+    return customIcons[category];
+  }
+  return DEFAULT_ICONS[category] || 'tag';
+}

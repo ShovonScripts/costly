@@ -3,21 +3,23 @@ import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native
 
 import { Card, CardDivider } from '@/components/card';
 import { ThemedText } from '@/components/themed-text';
+import { CategoryIcon } from '@/components/category-icon';
 import { useExpenses } from '@/context/expense-context';
-import { getCategoryColor } from '@/constants/categories';
+import { getCategoryColor, ICON_PACK } from '@/constants/categories';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function CategoriesScreen() {
   const theme = useTheme();
-  const { expenses, categories, customCategories, addCategory, renameCategory, deleteCategory } = useExpenses();
+  const { expenses, categories, customCategories, categoryIcons, addCategory, renameCategory, deleteCategory } = useExpenses();
   const [newName, setNewName] = useState('');
+  const [selectedIcon, setSelectedIcon] = useState('tag.fill');
   const [editing, setEditing] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [message, setMessage] = useState('');
 
   const create = () => {
-    const success = addCategory(newName);
+    const success = addCategory(newName, selectedIcon);
     setMessage(success ? `${newName.trim()} added.` : 'Choose a name that is not already in use.');
     if (success) setNewName('');
   };
@@ -29,13 +31,13 @@ export default function CategoriesScreen() {
     }
     setEditing(null);
     setEditName('');
-    setMessage('Category renamed. Existing expenses and its monthly limit were updated.');
+    setMessage('Category renamed.');
   };
 
   const remove = (category: string) => {
     const result = deleteCategory(category);
     if (result === 'in-use') {
-      setMessage(`Move or recategorize the expenses using “${category}” before removing it.`);
+      setMessage(`Move or recategorize expenses using “${category}” before removing it.`);
     } else if (result === 'deleted') {
       setMessage(`${category} removed.`);
     }
@@ -47,7 +49,7 @@ export default function CategoriesScreen() {
         <View style={styles.intro}>
           <ThemedText type="subtitle" style={styles.title}>Your categories</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Keep spending organized your way. Built-in categories stay available; custom ones can be renamed or removed.
+            Organize spending with custom names and premium icons.
           </ThemedText>
         </View>
 
@@ -73,8 +75,32 @@ export default function CategoriesScreen() {
               <ThemedText type="smallBold" style={styles.addButtonText}>Add</ThemedText>
             </Pressable>
           </View>
+
+          <ThemedText type="caption" themeColor="textSecondary">Select category icon:</ThemedText>
+          <View style={styles.iconPackGrid}>
+            {ICON_PACK.map((item) => {
+              const isSelected = selectedIcon === item.name;
+              return (
+                <Pressable
+                  key={item.name}
+                  onPress={() => setSelectedIcon(item.name)}
+                  accessibilityRole="button"
+                  accessibilityLabel={item.label}
+                  style={[
+                    styles.iconChoice,
+                    {
+                      backgroundColor: isSelected ? theme.accentMuted : theme.cardMuted,
+                      borderColor: isSelected ? theme.accent : theme.border,
+                    },
+                  ]}>
+                  <CategoryIcon category="Other" customIcons={{ Other: item.name }} color={isSelected ? theme.accent : theme.textSecondary} size={16} containerSize={28} />
+                </Pressable>
+              );
+            })}
+          </View>
+
           <ThemedText type="caption" themeColor={message.includes('added') || message.includes('renamed') || message.includes('removed') ? 'textSecondary' : message ? 'danger' : 'textSecondary'}>
-            {message || 'Use a short, recognizable name.'}
+            {message || 'Choose an icon and a short, recognizable name.'}
           </ThemedText>
         </Card>
 
@@ -87,11 +113,13 @@ export default function CategoriesScreen() {
             const isCustom = customCategories.includes(category);
             const usageCount = expenses.filter((expense) => expense.category === category).length;
             const isEditing = editing === category;
+            const color = getCategoryColor(category);
+
             return (
               <View key={category}>
                 {index > 0 && <CardDivider />}
                 <View style={styles.categoryRow}>
-                  <View style={[styles.categoryDot, { backgroundColor: getCategoryColor(category) }]} />
+                  <CategoryIcon category={category} customIcons={categoryIcons} color={color} size={16} containerSize={32} />
                   <View style={styles.categoryInfo}>
                     {isEditing ? (
                       <TextInput
@@ -147,10 +175,11 @@ const styles = StyleSheet.create({
   input: { flex: 1, minWidth: 0, minHeight: 48, borderWidth: StyleSheet.hairlineWidth, borderRadius: Radius.medium, paddingHorizontal: Spacing.three, fontSize: 16 },
   addButton: { minWidth: 68, minHeight: 48, borderRadius: Radius.medium, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.three },
   addButtonText: { color: '#FFFFFF' },
+  iconPackGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.one },
+  iconChoice: { width: 38, height: 38, borderRadius: Radius.small, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   disabled: { opacity: 0.45 },
   listHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: Spacing.one },
   categoryRow: { minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: Spacing.two, paddingHorizontal: Spacing.three, paddingVertical: Spacing.two },
-  categoryDot: { width: 10, height: 10, borderRadius: Radius.pill },
   categoryInfo: { flex: 1, minWidth: 0, gap: Spacing.one },
   renameInput: { minHeight: 40, borderWidth: StyleSheet.hairlineWidth, borderRadius: Radius.small, paddingHorizontal: Spacing.two, fontSize: 15 },
   rowActions: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one },

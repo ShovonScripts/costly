@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Card, CardDivider } from '@/components/card';
+import { CategoryBreakdown } from '@/components/category-breakdown';
 import { EmptyState } from '@/components/empty-state';
 import { ExpenseListItem } from '@/components/expense-list-item';
 import { ThemedText } from '@/components/themed-text';
@@ -332,6 +333,7 @@ export default function DashboardScreen() {
 
         <SpendingAdvisor expenses={expenses} limits={categoryLimits} formatAmount={formatAmount} />
         <WeeklySpending expenses={expenses} today={now} formatAmount={formatAmount} />
+        <CategoryBreakdown expenses={expenses} formatAmount={formatAmount} />
         <BudgetOverview expenses={expenses} limits={categoryLimits} formatAmount={formatAmount} />
 
         <View style={styles.sectionHeader}>

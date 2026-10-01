@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
+import { generateCsvReport } from '@/utils/csv';
 
 import { Card } from '@/components/card';
 import { ThemedText } from '@/components/themed-text';
@@ -102,6 +104,49 @@ export default function ReportsScreen() {
     }
   };
 
+  const createCsv = async () => {
+    if (isGenerating) return;
+    setIsGenerating(true);
+    setMessage('');
+    try {
+      const csvString = generateCsvReport({
+        expenses: monthExpenses,
+        currencyCode: country.currencyCode,
+      });
+
+      if (Platform.OS === 'web') {
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `costly-${monthLabel.replace(/\s+/g, '-')}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setMessage('Your CSV report has been downloaded.');
+      } else {
+        const filename = `costly-${monthLabel.replace(/\s+/g, '-')}.csv`;
+        const baseDir = (FileSystem as any).cacheDirectory ?? (FileSystem as any).documentDirectory;
+        if (!baseDir) throw new Error('File system directory not available.');
+        const uri = `${baseDir}${filename}`;
+        await FileSystem.writeAsStringAsync(uri, csvString, { encoding: FileSystem.EncodingType.UTF8 });
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(uri, {
+            mimeType: 'text/csv',
+            dialogTitle: `Costly ${monthLabel} CSV report`,
+          });
+          setMessage('Your CSV file is ready to share or save.');
+        } else {
+          setMessage('File sharing is not available on this device.');
+        }
+      }
+    } catch {
+      setMessage('Could not create the CSV export. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.container}>
@@ -173,6 +218,21 @@ export default function ReportsScreen() {
             <ThemedText type="caption" style={styles.pdfSubtext}>{Platform.OS === 'web' ? 'Print dialog · choose Save as PDF' : 'Save to Files or share a copy'}</ThemedText>
           </View>
           {!isGenerating && <ThemedText type="defaultBold" style={styles.pdfArrow}>→</ThemedText>}
+        </Pressable>
+
+        <Pressable
+          onPress={createCsv}
+          disabled={isGenerating}
+          accessibilityRole="button"
+          accessibilityLabel="Download monthly report as CSV"
+          accessibilityState={{ disabled: isGenerating }}
+          style={({ pressed }) => [styles.pdfButton, { backgroundColor: theme.cardMuted, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.border }, pressed && styles.pressed, isGenerating && styles.disabled]}>
+          <ThemedText type="defaultBold" style={[styles.pdfIcon, { backgroundColor: theme.accentMuted, color: theme.accent }]}>#</ThemedText>
+          <View style={styles.pdfCopy}>
+            <ThemedText type="defaultBold" style={{ color: theme.text }}>{isGenerating ? 'Preparing CSV…' : 'Download monthly CSV'}</ThemedText>
+            <ThemedText type="caption" themeColor="textSecondary">Excel-friendly spreadsheet export</ThemedText>
+          </View>
+          {!isGenerating && <ThemedText type="defaultBold" style={{ color: theme.accent }}>→</ThemedText>}
         </Pressable>
         {message ? <ThemedText type="caption" themeColor={message.startsWith('Could not') ? 'danger' : 'textSecondary'} accessibilityLiveRegion="polite">{message}</ThemedText> : null}
 

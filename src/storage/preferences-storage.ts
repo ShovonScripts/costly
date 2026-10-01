@@ -35,6 +35,18 @@ function sanitizePreferences(value: unknown): UserPreferences {
       }
     }
   }
+  const categoryIcons: Record<string, string> = {};
+  if (candidate.categoryIcons && typeof candidate.categoryIcons === 'object') {
+    for (const [category, icon] of Object.entries(candidate.categoryIcons)) {
+      if (typeof icon === 'string' && icon.trim().length > 0) {
+        categoryIcons[category] = icon.trim();
+      }
+    }
+  }
+
+  const notifiedThresholds = candidate.notifiedThresholds && typeof candidate.notifiedThresholds === 'object'
+    ? (candidate.notifiedThresholds as Record<string, string>)
+    : {};
 
   const countryCode = COUNTRIES.find((country) => country.code === candidate.countryCode)?.code ?? 'BD';
 
@@ -47,6 +59,8 @@ function sanitizePreferences(value: unknown): UserPreferences {
     countryCode,
     customCategories,
     categoryLimits,
+    categoryIcons,
+    notifiedThresholds,
   };
 }
 

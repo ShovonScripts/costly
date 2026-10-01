@@ -62,10 +62,9 @@ export function DatePicker({ value, onChange }: { value: Date; onChange: (date: 
           </View>
         </View>
         <View style={styles.dateCopy}>
-          <ThemedText type="caption" themeColor="textSecondary">DATE</ThemedText>
           <ThemedText type="defaultBold">{formatDate(value.toISOString())}</ThemedText>
         </View>
-        <ThemedText type="defaultBold" style={{ color: theme.accent }}>Change</ThemedText>
+        <ThemedText type="smallBold" style={{ color: theme.accent }}>Change</ThemedText>
       </Pressable>
 
       <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
@@ -141,12 +140,12 @@ function MonthButton({ label, symbol, onPress }: { label: string; symbol: string
 }
 
 const styles = StyleSheet.create({
-  dateButton: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: Spacing.three, borderWidth: StyleSheet.hairlineWidth, borderRadius: Radius.large, paddingHorizontal: Spacing.three, paddingVertical: Spacing.two },
-  calendarIcon: { width: 30, height: 30, position: 'relative' },
-  calendarTop: { height: 8, borderTopLeftRadius: 4, borderTopRightRadius: 4 },
-  calendarBody: { flex: 1, borderWidth: 1, borderBottomLeftRadius: 4, borderBottomRightRadius: 4, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignContent: 'center', gap: 2 },
-  calendarDot: { width: 4, height: 4, borderRadius: Radius.pill },
-  dateCopy: { flex: 1, gap: Spacing.one },
+  dateButton: { minHeight: 46, flexDirection: 'row', alignItems: 'center', gap: Spacing.two, borderWidth: StyleSheet.hairlineWidth, borderRadius: Radius.large, paddingHorizontal: Spacing.three, paddingVertical: Spacing.one },
+  calendarIcon: { width: 24, height: 24, position: 'relative' },
+  calendarTop: { height: 6, borderTopLeftRadius: 3, borderTopRightRadius: 3 },
+  calendarBody: { flex: 1, borderWidth: 1, borderBottomLeftRadius: 3, borderBottomRightRadius: 3, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignContent: 'center', gap: 1 },
+  calendarDot: { width: 3, height: 3, borderRadius: Radius.pill },
+  dateCopy: { flex: 1, gap: 0 },
   scrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center', padding: Spacing.four },
   dialog: { width: '100%', maxWidth: 360, borderWidth: StyleSheet.hairlineWidth, borderRadius: Radius.xlarge, padding: Spacing.three, gap: Spacing.three, elevation: 12 },
   dialogHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

@@ -1,9 +1,11 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { CategoryIcon } from '@/components/category-icon';
 import { getCategoryColor } from '@/constants/categories';
 import { Brand, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useExpenses } from '@/context/expense-context';
 import { EXPENSE_CATEGORIES, type ExpenseCategory } from '@/types/expense';
 
 export type CategoryFilter = ExpenseCategory | 'All';
@@ -24,6 +26,7 @@ function colorFor(option: CategoryFilter): string {
 
 export function CategoryChips({ value, onChange, showAll = false, categories = [...EXPENSE_CATEGORIES] }: CategoryChipsProps) {
   const theme = useTheme();
+  const { categoryIcons } = useExpenses();
   const options: CategoryFilter[] = showAll ? ['All', ...categories] : categories;
 
   return (
@@ -45,7 +48,13 @@ export function CategoryChips({ value, onChange, showAll = false, categories = [
                 backgroundColor: isSelected ? `${color}22` : 'transparent',
               },
             ]}>
-            {option !== 'All' && <View style={[styles.dot, { backgroundColor: color }]} />}
+            <CategoryIcon
+              category={option === 'All' ? 'Other' : option}
+              customIcons={categoryIcons}
+              color={color}
+              size={14}
+              containerSize={24}
+            />
             <ThemedText type="small" themeColor={isSelected ? 'text' : 'textSecondary'}>
               {option}
             </ThemedText>
@@ -71,10 +80,5 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
-  },
-  dot: {
-    width: Spacing.two,
-    height: Spacing.two,
-    borderRadius: Spacing.one,
   },
 });

@@ -1,5 +1,6 @@
 import { useLocalSearchParams, router } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
 
 import { Card, CardDivider } from '@/components/card';
 import { ThemedText } from '@/components/themed-text';
@@ -94,6 +95,17 @@ export default function ExpenseDetailsScreen() {
           <View style={styles.padded}>
             <DetailRow label="Note" value={expense.note || 'No note added'} wrap />
           </View>
+          {expense.receiptUri && (
+            <>
+              <CardDivider />
+              <View style={styles.padded}>
+                <ThemedText type="small" themeColor="textSecondary" style={styles.receiptLabel}>
+                  RECEIPT PHOTO
+                </ThemedText>
+                <Image source={{ uri: expense.receiptUri }} style={styles.receiptImage} contentFit="contain" />
+              </View>
+            </>
+          )}
         </Card>
 
         <View style={styles.actions}>
@@ -175,6 +187,15 @@ const styles = StyleSheet.create({
   },
   valueWrapped: {
     alignSelf: 'stretch',
+  },
+  receiptLabel: {
+    marginBottom: Spacing.two,
+  },
+  receiptImage: {
+    width: '100%',
+    height: 240,
+    borderRadius: Radius.medium,
+    backgroundColor: '#00000010',
   },
   actions: {
     flexDirection: 'row',
