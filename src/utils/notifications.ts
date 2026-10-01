@@ -1,26 +1,32 @@
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import type { Expense } from '@/types/expense';
 import { sumAmounts } from '@/utils/expense';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+let NotificationsModule: any = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  NotificationsModule = require('expo-notifications');
+  NotificationsModule.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+} catch {
+  // Expo Go fallback
+}
 
 export async function registerForBudgetNotificationsAsync(): Promise<boolean> {
-  if (Platform.OS === 'web') return false;
+  if (Platform.OS === 'web' || !NotificationsModule) return false;
   try {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    const { status: existingStatus } = await NotificationsModule.getPermissionsAsync();
     let finalStatus = existingStatus;
     if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
+      const { status } = await NotificationsModule.requestPermissionsAsync();
       finalStatus = status;
     }
     return finalStatus === 'granted';
@@ -40,7 +46,7 @@ export async function checkAndTriggerBudgetNotifications({
   notifiedThresholds?: Record<string, string>;
   onThresholdNotified: (key: string, level: string) => void;
 }) {
-  if (Platform.OS === 'web') return;
+  if (Platform.OS === 'web' || !NotificationsModule) return;
   const hasPermission = await registerForBudgetNotificationsAsync();
   if (!hasPermission) return;
 
@@ -80,7 +86,7 @@ export async function checkAndTriggerBudgetNotifications({
     }
 
     if (level && currentNotified !== level) {
-      await Notifications.scheduleNotificationAsync({
+      await NotificationsModule.scheduleNotificationAsync({
         content: {
           title: 'Budget Alert 💡',
           body: message,

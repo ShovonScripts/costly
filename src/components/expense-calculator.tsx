@@ -3,7 +3,6 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text
 
 import { ExpenseCategoryGrid } from '@/components/expense-category-grid';
 import { DatePicker } from '@/components/date-picker';
-import { ReceiptAttachment } from '@/components/receipt-attachment';
 import { ThemedText } from '@/components/themed-text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -77,7 +76,6 @@ export function ExpenseCalculator({
   const [recurringFrequency, setRecurringFrequency] = useState<RecurringFrequency>(
     initialValues?.recurringFrequency ?? 'monthly'
   );
-  const [receiptUri, setReceiptUri] = useState<string | undefined>(initialValues?.receiptUri);
 
   const calculatedAmount = evaluateExpression(expression);
   const isValid = Number.isFinite(calculatedAmount) && calculatedAmount > 0;
@@ -164,7 +162,7 @@ export function ExpenseCalculator({
       date: date.toISOString(),
       isRecurring,
       recurringFrequency: isRecurring ? recurringFrequency : undefined,
-      receiptUri,
+      receiptUri: initialValues?.receiptUri,
     });
   };
 
@@ -324,15 +322,7 @@ export function ExpenseCalculator({
             )}
           </View>
 
-          {/* 6. Receipt Photo Attachment */}
-          <View style={styles.section}>
-            <ThemedText type="caption" themeColor="textSecondary" style={styles.sectionLabel}>
-              RECEIPT PHOTO
-            </ThemedText>
-            <ReceiptAttachment receiptUri={receiptUri} onChange={setReceiptUri} />
-          </View>
-
-          {/* 7. Save Action */}
+          {/* 6. Save Action */}
           <Pressable
             onPress={handleSubmit}
             disabled={!isValid}

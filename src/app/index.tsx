@@ -166,7 +166,6 @@ function BudgetOverview({
 }
 
 function MoneyOverview({ formatAmount }: { formatAmount: (amount: number) => string }) {
-  const theme = useTheme();
   const { debts } = useDebts();
   const activeDebts = debts.filter((d) => d.status === 'active');
   const youAreOwed = activeDebts.filter((d) => d.type === 'lent').reduce((sum, d) => sum + d.amount, 0);
@@ -174,33 +173,53 @@ function MoneyOverview({ formatAmount }: { formatAmount: (amount: number) => str
   const net = youAreOwed - youOwe;
 
   return (
-    <Card style={styles.budgetCard}>
-      <View style={styles.sectionTitleRow}>
-        <View style={styles.sectionTitleCopy}>
-          <ThemedText type="defaultBold">Money Overview</ThemedText>
-          <ThemedText type="caption" themeColor="textSecondary">Active debts balance</ThemedText>
+    <View style={styles.heroCard}>
+      <View style={styles.heroContent}>
+        <View style={styles.heroTopline}>
+          <ThemedText type="caption" style={styles.heroLabel}>MONEY OVERVIEW</ThemedText>
+          <Pressable
+            onPress={() => router.push('/debts/add')}
+            accessibilityRole="button"
+            accessibilityLabel="Add debt"
+            style={({ pressed }) => [styles.heroAddButton, pressed && styles.pressed]}>
+            <ThemedText type="defaultBold" style={styles.heroAddButtonText}>＋ Add debt</ThemedText>
+          </Pressable>
         </View>
-        <Pressable onPress={() => router.push('/debts')} accessibilityRole="button" hitSlop={8}>
-          <ThemedText type="smallBold" style={{ color: theme.accent }}>View debts  →</ThemedText>
-        </Pressable>
-      </View>
-      <View style={styles.summaryGrid}>
-        <View style={styles.summaryCol}>
-          <ThemedText type="caption" themeColor="textSecondary">YOU ARE OWED</ThemedText>
-          <ThemedText type="smallBold" style={{ color: '#27AE60' }}>{formatAmount(youAreOwed)}</ThemedText>
+
+        <View style={styles.heroSummaryRow}>
+          <View style={styles.heroStat}>
+            <ThemedText type="caption" style={styles.heroStatLabel}>YOU ARE OWED</ThemedText>
+            <ThemedText type="subtitle" style={styles.heroStatVal} numberOfLines={1} adjustsFontSizeToFit>
+              {formatAmount(youAreOwed)}
+            </ThemedText>
+          </View>
+          <View style={styles.heroDivider} />
+          <View style={styles.heroStat}>
+            <ThemedText type="caption" style={styles.heroStatLabel}>YOU OWE</ThemedText>
+            <ThemedText type="subtitle" style={styles.heroStatVal} numberOfLines={1} adjustsFontSizeToFit>
+              {formatAmount(youOwe)}
+            </ThemedText>
+          </View>
         </View>
-        <View style={styles.summaryCol}>
-          <ThemedText type="caption" themeColor="textSecondary">YOU OWE</ThemedText>
-          <ThemedText type="smallBold" style={{ color: theme.danger }}>{formatAmount(youOwe)}</ThemedText>
-        </View>
-        <View style={styles.summaryCol}>
-          <ThemedText type="caption" themeColor="textSecondary">NET</ThemedText>
-          <ThemedText type="smallBold" style={{ color: net >= 0 ? '#27AE60' : theme.danger }}>
-            {net >= 0 ? `+${formatAmount(net)}` : formatAmount(net)}
+
+        <View style={styles.heroNetRow}>
+          <ThemedText type="small" style={styles.heroNetText}>
+            Net Position: <ThemedText type="smallBold" style={{ color: '#FFFFFF' }}>{net >= 0 ? `+${formatAmount(net)} (Credit)` : `${formatAmount(net)} (Debit)`}</ThemedText>
           </ThemedText>
         </View>
       </View>
-    </Card>
+
+      <Pressable
+        onPress={() => router.push('/debts')}
+        accessibilityRole="button"
+        accessibilityLabel="View debts"
+        style={({ pressed }) => [styles.heroBottomAction, pressed && styles.pressed]}>
+        <ThemedText type="smallBold" style={styles.heroBottomActionText}>View debts  →</ThemedText>
+      </Pressable>
+
+      <View pointerEvents="none" style={styles.heroOrbLarge} />
+      <View pointerEvents="none" style={styles.heroOrbSmall} />
+    </View>
   );
 }
 
@@ -450,6 +469,36 @@ const styles = StyleSheet.create({
   addButtonText: { color: Brand.deep },
   heroOrbLarge: { position: 'absolute', width: 230, height: 230, borderRadius: 115, right: -90, top: -100, backgroundColor: 'rgba(139,123,255,0.2)' },
   heroOrbSmall: { position: 'absolute', width: 130, height: 130, borderRadius: 65, right: 14, bottom: -90, backgroundColor: 'rgba(176,76,252,0.2)' },
+  heroCard: {
+    backgroundColor: Brand.deep,
+    borderRadius: Radius.xlarge,
+    padding: Spacing.four,
+    overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  heroAddButton: { backgroundColor: '#FFFFFF', borderRadius: Radius.pill, paddingHorizontal: Spacing.three, paddingVertical: Spacing.one },
+  heroAddButtonText: { color: Brand.deep, fontSize: 13, fontWeight: '700' },
+  heroSummaryRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two, marginVertical: Spacing.two },
+  heroStat: { flex: 1, gap: Spacing.half },
+  heroStatLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 11 },
+  heroStatVal: { color: '#FFFFFF', fontSize: 24, lineHeight: 30, fontVariant: ['tabular-nums'] },
+  heroDivider: { width: StyleSheet.hairlineWidth, height: 36, backgroundColor: 'rgba(255,255,255,0.2)' },
+  heroNetRow: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.15)', paddingTop: Spacing.two },
+  heroNetText: { color: 'rgba(255,255,255,0.8)' },
+  heroBottomAction: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.15)',
+    paddingTop: Spacing.three,
+    marginTop: Spacing.two,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    zIndex: 1,
+  },
+  heroBottomActionText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
   summaryRow: { flexDirection: 'row', gap: Spacing.three },
   metricCard: { flex: 1, gap: Spacing.one, minWidth: 0 },
   metricIcon: { width: 30, height: 30, borderRadius: Radius.small, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.one },
@@ -475,8 +524,6 @@ const styles = StyleSheet.create({
   budgetCategory: { flex: 1 },
   budgetTrack: { height: 8, borderRadius: Radius.pill, overflow: 'hidden' },
   budgetFill: { height: '100%', borderRadius: Radius.pill },
-  summaryGrid: { flexDirection: 'row', justifyContent: 'space-between', marginTop: Spacing.one },
-  summaryCol: { flex: 1, gap: Spacing.half },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two },
   sectionTitleCopy: { gap: Spacing.one },
   chart: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: Spacing.two, minHeight: 112 },
