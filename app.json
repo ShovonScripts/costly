@@ -43,7 +43,15 @@
         }
       ],
       "expo-sqlite",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "reactNativeArchitectures": "arm64-v8a"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
@@ -57,7 +65,7 @@
         }
       },
       "eas": {
-        "projectId": "b4fe44f8-48d2-46ee-99e5-59f7c2f36379"
+        "projectId": "0c62a7a3-26df-4a5c-9e80-15dec231da3e"
       }
     }
   }
