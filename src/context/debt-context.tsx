@@ -12,6 +12,8 @@ import {
 
 import type { DebtRecord, DebtDraft } from '@/types/debt';
 import { loadDebts, saveDebts } from '@/storage/debt-storage';
+import { checkAndTriggerDebtNotifications } from '@/utils/notifications';
+import { useExpenses } from '@/context/expense-context';
 
 type DebtAction =
   | { type: 'HYDRATE'; debts: DebtRecord[] }
@@ -93,9 +95,25 @@ export function DebtProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const [notifiedDebts, setNotifiedDebts] = useState<Record<string, string>>({});
+  const { formatAmount } = useExpenses();
+
   useEffect(() => {
     if (hasLoadedRef.current) void saveDebts(debts);
   }, [debts]);
+
+  useEffect(() => {
+    if (hasLoadedRef.current) {
+      void checkAndTriggerDebtNotifications({
+        debts,
+        notifiedDebts,
+        onDebtNotified: (key, dateKey) => {
+          setNotifiedDebts((current) => ({ ...current, [key]: dateKey }));
+        },
+        formatAmount,
+      });
+    }
+  }, [debts, notifiedDebts, formatAmount]);
 
   const addDebt = useCallback((draft: DebtDraft): DebtRecord => {
     const debt: DebtRecord = {

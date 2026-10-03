@@ -99,3 +99,59 @@ export async function checkAndTriggerBudgetNotifications({
     }
   }
 }
+
+export async function checkAndTriggerDebtNotifications({
+  debts,
+  notifiedDebts = {},
+  onDebtNotified,
+  formatAmount,
+}: {
+  debts: any[];
+  notifiedDebts?: Record<string, string>;
+  onDebtNotified: (key: string, dateKey: string) => void;
+  formatAmount?: (amount: number) => string;
+}) {
+  if (Platform.OS === 'web' || !NotificationsModule) return;
+  const hasPermission = await registerForBudgetNotificationsAsync();
+  if (!hasPermission) return;
+
+  const now = new Date();
+  const yearMonthDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+  for (const debt of debts) {
+    if (debt.status !== 'active' || !debt.dueDate) continue;
+
+    const dueDate = new Date(debt.dueDate);
+    if (Number.isNaN(dueDate.getTime())) continue;
+
+    const isToday = (
+      dueDate.getFullYear() === now.getFullYear() &&
+      dueDate.getMonth() === now.getMonth() &&
+      dueDate.getDate() === now.getDate()
+    );
+    const isPastDue = dueDate < now && !isToday;
+
+    if (isToday || isPastDue) {
+      const trackingKey = `debt-${debt.id}-${yearMonthDay}`;
+      if (notifiedDebts[trackingKey]) continue;
+
+      const isLent = debt.type === 'lent';
+      const formattedAmount = formatAmount ? formatAmount(debt.amount) : String(debt.amount);
+      const title = isLent ? (isToday ? 'Lent Debt Due Today 💰' : 'Overdue Debt Notice ⏳') : (isToday ? 'Borrowed Debt Due Today 🔔' : 'Overdue Loan Reminder ⚠️');
+      const message = isLent
+        ? `${debt.personName}'s lent debt of ${formattedAmount} is ${isToday ? 'due today' : 'past due'}.`
+        : `Your borrowed debt of ${formattedAmount} from ${debt.personName} is ${isToday ? 'due today' : 'past due'}.`;
+
+      await NotificationsModule.scheduleNotificationAsync({
+        content: {
+          title,
+          body: message,
+          sound: true,
+        },
+        trigger: null,
+      });
+
+      onDebtNotified(trackingKey, yearMonthDay);
+    }
+  }
+}
