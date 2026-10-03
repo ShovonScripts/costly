@@ -9,7 +9,6 @@
     "expo": "~57.0.26",
     "expo-build-properties": "~57.0.22",
     "expo-constants": "~57.0.20",
-    "expo-device": "~57.0.2",
     "expo-font": "~57.0.4",
     "expo-glass-effect": "~57.0.4",
     "expo-image": "~57.0.5",

@@ -49,6 +49,9 @@ function sanitizePreferences(value: unknown): UserPreferences {
     : {};
 
   const countryCode = COUNTRIES.find((country) => country.code === candidate.countryCode)?.code ?? 'BD';
+  const hasCompletedOnboarding = typeof candidate.hasCompletedOnboarding === 'boolean'
+    ? candidate.hasCompletedOnboarding
+    : false;
 
   return {
     profile: {
@@ -61,6 +64,7 @@ function sanitizePreferences(value: unknown): UserPreferences {
     categoryLimits,
     categoryIcons,
     notifiedThresholds,
+    hasCompletedOnboarding,
   };
 }
 

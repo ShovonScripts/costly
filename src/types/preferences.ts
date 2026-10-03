@@ -17,6 +17,7 @@ export type UserPreferences = {
   /** Custom icons for categories, keyed by category name. */
   categoryIcons: Record<string, string>;
   notifiedThresholds: Record<string, string>;
+  hasCompletedOnboarding: boolean;
 };
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
@@ -26,4 +27,5 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   categoryLimits: {},
   categoryIcons: {},
   notifiedThresholds: {},
+  hasCompletedOnboarding: false,
 };

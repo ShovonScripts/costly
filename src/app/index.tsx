@@ -5,6 +5,7 @@ import { Card, CardDivider } from '@/components/card';
 import { CategoryBreakdown } from '@/components/category-breakdown';
 import { EmptyState } from '@/components/empty-state';
 import { ExpenseListItem } from '@/components/expense-list-item';
+import { OnboardingModal } from '@/components/onboarding-modal';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { getCategoryColor } from '@/constants/categories';
@@ -312,7 +313,7 @@ function InsightLine({ insight, formatAmount }: { insight: BudgetInsight; format
 }
 
 export default function DashboardScreen() {
-  const { expenses, profile, categoryLimits, formatAmount } = useExpenses();
+  const { expenses, profile, categoryLimits, formatAmount, hasCompletedOnboarding, setHasCompletedOnboarding, isLoading } = useExpenses();
   const theme = useTheme();
   const now = new Date();
   const monthSpend = totalForMonth(expenses, now);
@@ -432,6 +433,10 @@ export default function DashboardScreen() {
           Small steps make a clearer picture.
         </ThemedText>
       </View>
+      <OnboardingModal
+        visible={!hasCompletedOnboarding && !isLoading}
+        onClose={() => setHasCompletedOnboarding(true)}
+      />
     </ScrollView>
   );
 }

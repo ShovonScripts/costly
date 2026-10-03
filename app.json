@@ -48,8 +48,8 @@
         "expo-build-properties",
         {
           "android": {
-            "reactNativeArchitectures": ["arm64-v8a"],
-            "enableProguardInReleaseBuilds": true,
+            "buildArchs": ["arm64-v8a"],
+            "enableMinifyInReleaseBuilds": true,
             "enableShrinkResourcesInReleaseBuilds": true
           }
         }

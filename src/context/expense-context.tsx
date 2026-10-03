@@ -78,6 +78,8 @@ type ExpenseContextValue = {
   deleteCategory: (name: string) => DeleteCategoryResult;
   setCategoryLimit: (category: string, limit: number | null) => void;
   setCategoryIcon: (category: string, icon: string) => void;
+  hasCompletedOnboarding: boolean;
+  setHasCompletedOnboarding: (completed: boolean) => void;
 };
 
 const ExpenseContext = createContext<ExpenseContextValue | undefined>(undefined);
@@ -259,6 +261,10 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const setHasCompletedOnboarding = useCallback((completed: boolean) => {
+    setPreferences((current) => ({ ...current, hasCompletedOnboarding: completed }));
+  }, []);
+
   const value = useMemo(() => ({
     expenses,
     isLoading,
@@ -269,6 +275,8 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     customCategories: preferences.customCategories,
     categoryLimits: preferences.categoryLimits,
     categoryIcons: preferences.categoryIcons,
+    hasCompletedOnboarding: preferences.hasCompletedOnboarding ?? false,
+    setHasCompletedOnboarding,
     addExpense,
     updateExpense,
     deleteExpense,
@@ -298,6 +306,7 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     deleteCategory,
     setCategoryLimit,
     setCategoryIcon,
+    setHasCompletedOnboarding,
   ]);
 
   return <ExpenseContext.Provider value={value}>{children}</ExpenseContext.Provider>;

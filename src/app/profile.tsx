@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { Card } from '@/components/card';
+import { OnboardingModal } from '@/components/onboarding-modal';
 import { ThemedText } from '@/components/themed-text';
 import { useExpenses } from '@/context/expense-context';
 import { Radius, Spacing } from '@/constants/theme';
@@ -22,6 +23,7 @@ export default function ProfileScreen() {
   const [ageText, setAgeText] = useState(profile.age === null ? '' : String(profile.age));
   const [gender, setGender] = useState<GenderOption>(profile.gender);
   const [saved, setSaved] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const age = ageText.trim() === '' ? null : Number(ageText);
   const ageIsValid = age === null || (Number.isInteger(age) && age >= 1 && age <= 120);
@@ -121,6 +123,8 @@ export default function ProfileScreen() {
             onPress={() => router.push('/country')}
           />
           <View style={[styles.divider, { backgroundColor: theme.border }]} />
+          <SettingsLink title="App tour & guide" detail="Replay welcome walkthrough and features guide" onPress={() => setShowOnboarding(true)} />
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
           <SettingsLink title="Lend & borrow" detail="Track money lent and borrowed (IOUs)" onPress={() => router.push('/debts')} />
           <View style={[styles.divider, { backgroundColor: theme.border }]} />
           <SettingsLink title="Manage categories" detail="Create, rename, or remove categories" onPress={() => router.push('/categories')} />
@@ -136,6 +140,7 @@ export default function ProfileScreen() {
           Your profile and expenses are stored locally on this device. Costly does not need your personal details to track spending.
         </ThemedText>
       </View>
+      <OnboardingModal visible={showOnboarding} onClose={() => setShowOnboarding(false)} />
     </ScrollView>
   );
 }
